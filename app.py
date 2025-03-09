@@ -25,6 +25,10 @@ app.config["MAIL_DEFAULT_SENDER"] = "khansadiya9901@gmail.com"
 
 mail = Mail(app)
 
+# Ensure 'uploads' folder exists
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 def upload_file_to_drive(file_path, file_name):
     """Uploads a file to Google Drive."""
     file_metadata = {
@@ -45,13 +49,13 @@ def send_email_notification(user_email, file_name, file_id):
     file_link = f"https://drive.google.com/file/d/{file_id}/view"
     body = f"""
     Hello,<br><br>
-    Your file '<b>{file_name}</b>' has been successfully uploaded to our system.<br>
-    You can access it here: <a href="{file_link}" target="_blank">Click Here to View File</a><br><br>
+    Your file '<b>{file_name}</b>' has been successfully uploaded.<br>
+    You can access it here: <a href="{file_link}" target="_blank">Click here to view your file</a>.<br><br>
     Thank you!
     """
     
     msg = Message(subject, recipients=[user_email])
-    msg.html = body  # Using HTML content for hyperlink support
+    msg.html = body  # Using HTML to format the hyperlink
     mail.send(msg)
 
 @app.route('/')
@@ -69,13 +73,18 @@ def upload():
     if file.filename == '':
         return "No selected file"
 
-    file_path = os.path.join("uploads", file.filename)
+    # Save the file in the 'uploads' folder
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
     
+    # Upload file to Google Drive
     file_id = upload_file_to_drive(file_path, file.filename)
-    os.remove(file_path)  # Delete file after upload
     
-    send_email_notification(user_email, file.filename, file_id)  # Send email to user
+    # Delete the file after upload
+    os.remove(file_path)
+
+    # Send notification email
+    send_email_notification(user_email, file.filename, file_id)
 
     return f"File uploaded successfully! An email has been sent to {user_email}."
 
