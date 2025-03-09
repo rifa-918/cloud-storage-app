@@ -43,10 +43,15 @@ def send_email_notification(user_email, file_name, file_id):
     """Sends an email to the user with the file upload details."""
     subject = "File Upload Successful!"
     file_link = f"https://drive.google.com/file/d/{file_id}/view"
-    body = f"Hello,\n\nYour file '{file_name}' has been successfully uploaded to our system.\nYou can access it here: {file_link}\n\nThank you!"
+    body = f"""
+    Hello,<br><br>
+    Your file '<b>{file_name}</b>' has been successfully uploaded to our system.<br>
+    You can access it here: <a href="{file_link}" target="_blank">Click Here to View File</a><br><br>
+    Thank you!
+    """
     
     msg = Message(subject, recipients=[user_email])
-    msg.body = body
+    msg.html = body  # Using HTML content for hyperlink support
     mail.send(msg)
 
 @app.route('/')
@@ -72,7 +77,7 @@ def upload():
     
     send_email_notification(user_email, file.filename, file_id)  # Send email to user
 
-    return f"File uploaded successfully! File ID: {file_id}. An email has been sent to {user_email}."
+    return f"File uploaded successfully! An email has been sent to {user_email}."
 
 if __name__ == '__main__':
     os.makedirs("uploads", exist_ok=True)
